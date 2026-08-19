@@ -1,0 +1,12 @@
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+
+# Local FIT sample data (personal activity files)
+data/raw/
+
+# Go build artifacts
+/bin/
+*.out

@@ -10,3 +10,4 @@ data/raw/
 # Go build artifacts
 /bin/
 *.out
+.env

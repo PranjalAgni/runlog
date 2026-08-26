@@ -7,4 +7,5 @@ type TrackPoint struct {
 	Latitude  float64
 	Longitude float64
 	Speed     float64
+	HeartRate uint8
 }

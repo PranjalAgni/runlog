@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/PranjalAgni/runlog/internal/fit"
 	"github.com/muktihari/fit/decoder"
 	"github.com/muktihari/fit/profile/filedef"
 )
@@ -106,16 +107,32 @@ func main() {
 	// 2. extract needed information
 	// 3. log them
 
-	fmt.Println("Hello, World!")
-
 	// accepting file path
 	relativeFP := os.Args[1]
 	absFileFP, err := filepath.Abs(relativeFP)
 
+	fmt.Printf("Lets begin the parsing %s\n", relativeFP)
+
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(absFileFP)
-	findChecksum(absFileFP)
-	inspectActivity(absFileFP)
+
+	// findChecksum(absFileFP)
+	// inspectActivity(absFileFP)
+
+	run, err := fit.Parse(absFileFP)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("\n=== Mapped domain.Run ===\n")
+	fmt.Printf("Id: %s\n", run.Id)
+	fmt.Printf("StartedAt: %s\n", run.StartedAt)
+	fmt.Printf("DistanceMeters: %.2f\n", run.DistanceMeters)
+	fmt.Printf("ElapsedTime: %s\n", run.ElapsedTime)
+	fmt.Printf("TimerTime: %s\n", run.TimerTime)
+	fmt.Printf("Calories: %d\n", run.Calories)
+	fmt.Printf("TotalAscent: %.0f\n", run.TotalAscent)
+	fmt.Printf("TotalDescent: %.0f\n", run.TotalDescent)
+	fmt.Printf("Splits: %d\n", len(run.Split))
+	fmt.Printf("TrackPoints (with GPS): %d\n", len(run.TrackPoint))
 }

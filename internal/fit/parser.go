@@ -73,18 +73,17 @@ func Parse(filePath string) (domain.Run, error) {
 			continue
 		}
 
-		tp := domain.TrackPoint{
+		// enhanced fields supersede the legacy ones; some devices only write one of them
+		run.TrackPoint = append(run.TrackPoint, domain.TrackPoint{
+			Sequence:  len(run.TrackPoint) + 1,
 			Timestamp: rec.Timestamp,
 			Latitude:  lat,
 			Longitude: lng,
-			Speed:     scaledOrZero(rec.SpeedScaled()),
-		}
-
-		if rec.HeartRate != 0xFF {
-			tp.HeartRate = rec.HeartRate
-		}
-
-		run.TrackPoint = append(run.TrackPoint, tp)
+			Elevation: scaledOrNil(rec.EnhancedAltitudeScaled(), rec.AltitudeScaled()),
+			Speed:     scaledOrNil(rec.EnhancedSpeedScaled(), rec.SpeedScaled()),
+			HeartRate: uint8OrNil(rec.HeartRate),
+			Cadence:   uint8OrNil(rec.Cadence),
+		})
 	}
 
 	return run, nil

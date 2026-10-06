@@ -110,7 +110,51 @@ func main() {
 		fmt.Printf("created split %d: %v\n", split.Lap, splitID)
 	}
 
+	// create a slice where we will append all the trackpoints
+	// once the list is ready we can send that in one go using pool.CopyFrom
+	// COPY FROM copies data from a file to a table (appending the data to whatever is in the table already
+	trackPoints := make([]db.CreateTrackPointsParams, 0, len(run.TrackPoint))
+	for _, tp := range run.TrackPoint {
+		trackPoints = append(trackPoints, db.CreateTrackPointsParams{
+			RunID:          runID,
+			SequenceNumber: int32(tp.Sequence),
+			RecordedAt: pgtype.Timestamptz{
+				Time:  tp.Timestamp,
+				Valid: true,
+			},
+			Latitude:        tp.Latitude,
+			Longitude:       tp.Longitude,
+			ElevationMeters: float8OrNull(tp.Elevation),
+			SpeedMps:        float8OrNull(tp.Speed),
+			HeartRate:       int2OrNull(tp.HeartRate),
+			Cadence:         int2OrNull(tp.Cadence),
+		})
+	}
+
+	inserted, err := queries.CreateTrackPoints(ctx, trackPoints)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("created %d track points\n", inserted)
+
 	if err := tx.Commit(ctx); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func float8OrNull(v *float64) pgtype.Float8 {
+	if v == nil {
+		return pgtype.Float8{}
+	}
+
+	return pgtype.Float8{Float64: *v, Valid: true}
+}
+
+func int2OrNull(v *uint8) pgtype.Int2 {
+	if v == nil {
+		return pgtype.Int2{}
+	}
+
+	return pgtype.Int2{Int16: int16(*v), Valid: true}
 }

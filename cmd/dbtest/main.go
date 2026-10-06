@@ -37,7 +37,16 @@ func main() {
 
 	defer pool.Close()
 
-	queries := db.New(pool)
+	// source file, run and splits are written atomically
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// no-op once the tx is committed
+	defer tx.Rollback(ctx)
+
+	queries := db.New(pool).WithTx(tx)
 
 	sourceFileId, err := queries.CreateSourceFile(ctx, db.CreateSourceFileParams{
 		Filename:      "zepp.fit",
@@ -79,6 +88,29 @@ func main() {
 	}
 
 	runID, err := queries.CreateRun(ctx, params)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	fmt.Println("created a run: ", runID)
+
+	for _, split := range run.Split {
+		splitID, err := queries.CreateSplit(ctx, db.CreateSplitParams{
+			RunID:          runID,
+			LapNumber:      int32(split.Lap),
+			DistanceMeters: split.DistanceMeters,
+			ElapsedTimeMs:  split.ElapsedTime.Milliseconds(),
+			TimerTimeMs:    split.TimerTime.Milliseconds(),
+		})
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("created split %d: %v\n", split.Lap, splitID)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		log.Fatal(err)
+	}
 }

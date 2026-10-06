@@ -60,6 +60,7 @@ func Parse(filePath string) (domain.Run, error) {
 			Lap:            i + 1,
 			DistanceMeters: scaledOrZero(lap.TotalDistanceScaled()),
 			ElapsedTime:    secondsToDuration(lap.TotalElapsedTimeScaled()),
+			TimerTime:      secondsToDuration(lap.TotalTimerTimeScaled()),
 		})
 	}
 
@@ -72,13 +73,18 @@ func Parse(filePath string) (domain.Run, error) {
 			continue
 		}
 
-		run.TrackPoint = append(run.TrackPoint, domain.TrackPoint{
+		tp := domain.TrackPoint{
 			Timestamp: rec.Timestamp,
 			Latitude:  lat,
 			Longitude: lng,
 			Speed:     scaledOrZero(rec.SpeedScaled()),
-			HeartRate: rec.HeartRate,
-		})
+		}
+
+		if rec.HeartRate != 0xFF {
+			tp.HeartRate = rec.HeartRate
+		}
+
+		run.TrackPoint = append(run.TrackPoint, tp)
 	}
 
 	return run, nil

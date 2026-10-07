@@ -131,12 +131,12 @@ func main() {
 		})
 	}
 
-	inserted, err := queries.CreateTrackPoints(ctx, trackPoints)
+	trackPointsInsertCount, err := queries.CreateTrackPoints(ctx, trackPoints)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("created %d track points\n", inserted)
+	fmt.Printf("created %d track points\n", trackPointsInsertCount)
 
 	if err := tx.Commit(ctx); err != nil {
 		log.Fatal(err)
